@@ -20,17 +20,36 @@ function App() {
   const [input, setInput] = useState('');
   const [githubRepo, setGithubRepo] = useState('');
   const [showChat, setShowChat] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleGithubSubmit = (e: React.FormEvent) => {
+  const handleGithubSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!githubRepo.trim()) return;
     
-    // Here you would typically send the GitHub repo to your backend
-    console.log('Submitted GitHub repo:', githubRepo);
-    setShowChat(true);
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://127.0.0.1:5001/learn', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ github_url: githubRepo }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to analyze repository');
+      }
+
+      setShowChat(true);
+    } catch (error) {
+      console.error('Error analyzing repository:', error);
+      alert('Failed to analyze repository. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
@@ -41,15 +60,43 @@ function App() {
       timestamp: new Date(),
     };
 
-    const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      content: 'This is a demo response. In a real application, this would be connected to an AI backend.',
-      role: 'assistant',
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage, assistantMessage]);
+    setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput('');
+
+    try {
+      const response = await fetch('http://127.0.0.1:5001/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: currentInput }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const data = await response.json();
+      
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: data.response || 'Sorry, I could not process your request.',
+        role: 'assistant',
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error querying:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: 'Sorry, there was an error processing your request. Please try again.',
+        role: 'assistant',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
   };
 
   if (!showChat) {
@@ -82,10 +129,10 @@ function App() {
             <button
               type="submit"
               className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-              disabled={!githubRepo.trim()}
+              disabled={!githubRepo.trim() || isLoading}
             >
               <Github className="w-5 h-5" />
-              <span>Analyze Repository</span>
+              <span>{isLoading ? 'Analyzing...' : 'Analyze Repository'}</span>
             </button>
           </form>
         </div>
