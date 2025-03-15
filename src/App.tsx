@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Send, Bot, User, Github } from 'lucide-react';
+import { Send, Bot, User, Github, ArrowLeft } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -99,6 +99,17 @@ function App() {
     }
   };
 
+  const handleBack = () => {
+    setShowChat(false);
+    setGithubRepo('');
+    setMessages([{
+      id: '1',
+      content: 'Hello! How can I help you today?',
+      role: 'assistant',
+      timestamp: new Date(),
+    }]);
+  };
+
   if (!showChat) {
     return (
       <div className="flex min-h-screen bg-gray-100 items-center justify-center p-4">
@@ -145,6 +156,13 @@ function App() {
       {/* Header */}
       <div className="bg-white shadow-sm py-4 px-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleBack}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            title="Back to repository selection"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-600" />
+          </button>
           <Bot className="w-6 h-6 text-blue-600" />
           <h1 className="text-xl font-semibold text-gray-800">Chat Assistant</h1>
         </div>
