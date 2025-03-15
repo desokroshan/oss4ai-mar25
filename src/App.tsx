@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, Github } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -18,6 +18,17 @@ function App() {
     },
   ]);
   const [input, setInput] = useState('');
+  const [githubRepo, setGithubRepo] = useState('');
+  const [showChat, setShowChat] = useState(false);
+
+  const handleGithubSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!githubRepo.trim()) return;
+    
+    // Here you would typically send the GitHub repo to your backend
+    console.log('Submitted GitHub repo:', githubRepo);
+    setShowChat(true);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,12 +52,59 @@ function App() {
     setInput('');
   };
 
+  if (!showChat) {
+    return (
+      <div className="flex min-h-screen bg-gray-100 items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
+          <div className="flex items-center gap-3 mb-8">
+            <Github className="w-8 h-8 text-blue-600" />
+            <h1 className="text-2xl font-semibold text-gray-800">GitHub Repository Analysis</h1>
+          </div>
+          
+          <form onSubmit={handleGithubSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="repo" className="block text-sm font-medium text-gray-700 mb-2">
+                Enter GitHub Repository URL
+              </label>
+              <input
+                id="repo"
+                type="text"
+                value={githubRepo}
+                onChange={(e) => setGithubRepo(e.target.value)}
+                placeholder="https://github.com/username/repository"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <p className="mt-2 text-sm text-gray-500">
+                Example: https://github.com/facebook/react
+              </p>
+            </div>
+            
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+              disabled={!githubRepo.trim()}
+            >
+              <Github className="w-5 h-5" />
+              <span>Analyze Repository</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       {/* Header */}
-      <div className="bg-white shadow-sm py-4 px-6 flex items-center gap-2">
-        <Bot className="w-6 h-6 text-blue-600" />
-        <h1 className="text-xl font-semibold text-gray-800">Chat Assistant</h1>
+      <div className="bg-white shadow-sm py-4 px-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Bot className="w-6 h-6 text-blue-600" />
+          <h1 className="text-xl font-semibold text-gray-800">Chat Assistant</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <Github className="w-5 h-5 text-gray-600" />
+          <span className="text-sm text-gray-600">{githubRepo.split('/').slice(-2).join('/')}</span>
+        </div>
       </div>
 
       {/* Chat Messages */}
